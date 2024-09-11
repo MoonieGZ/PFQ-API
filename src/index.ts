@@ -124,6 +124,10 @@ app.post('/login', async (req: Request, res: Response) => {
  * @param {Response} res - The response object, used to send back the user's information or an error message.
  */
 app.get('/me', authenticateToken, async (req: Request, res: Response) => {
+  if (req.user === undefined) {
+    return res.status(500).json({message: 'Not authenticated'})
+  }
+
   try {
     // Query the database for the user's details using the authenticated user's ID
     const [rows] = await pool.query(

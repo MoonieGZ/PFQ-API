@@ -1,9 +1,9 @@
 // types/express.d.ts
-import {User} from './user'
+import User from './user'
 
 declare global {
   namespace Express {
-    interface Request {
+    export interface Request {
       user?: User;
     }
   }

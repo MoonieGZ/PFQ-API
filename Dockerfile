@@ -1,8 +1,8 @@
-ARG NODE_VERSION=18.20.4
+ARG NODE_VERSION=20.17.0
 
 FROM node:${NODE_VERSION}-alpine
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
 
@@ -13,4 +13,4 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 
 COPY . .
 
-CMD npm start
+CMD npm run serve

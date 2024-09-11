@@ -1,6 +1,7 @@
 import {NextFunction, Request, Response} from 'express'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
+import User from '../types/user'
 
 dotenv.config()
 
@@ -15,7 +16,7 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     if (err) {
       return res.sendStatus(403)
     }
-    req.user = user
+    req.user = user as User
     next()
   })
 }
