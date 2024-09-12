@@ -13,4 +13,4 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 
 COPY . .
 
-CMD npm run serve
+CMD npm run start
