@@ -2,12 +2,13 @@ import express, {Request, Response} from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import mysql from 'mysql2/promise'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import otplib from 'otplib'
+import {authenticator} from 'otplib'
 
 import User from './types/user'
 import authenticateToken from './utils/auth'
+import {AuthenticatedRequest} from './interfaces/request'
 
 dotenv.config()
 
@@ -88,7 +89,7 @@ app.post('/login', async (req: Request, res: Response) => {
     }
 
     // If the provided OTP is invalid, return a 401 status
-    if (user.otp && !otplib.authenticator.check(otp, user.otp)) {
+    if (user.otp && !authenticator.check(otp, user.otp)) {
       return res.status(401).json({message: 'Invalid 2FA code'})
     }
 
@@ -120,10 +121,10 @@ app.post('/login', async (req: Request, res: Response) => {
  * It requires a valid JWT token to be provided in the request headers.
  * If the token is valid, it queries the database for the user's details and returns them.
  *
- * @param {Request} req - The request object, containing the authenticated user's ID in `req.user.id`.
+ * @param {AuthenticatedRequest} req - The request object, containing the authenticated user's ID in `req.user.id`.
  * @param {Response} res - The response object, used to send back the user's information or an error message.
  */
-app.get('/me', authenticateToken, async (req: Request, res: Response) => {
+app.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   if (req.user === undefined) {
     return res.status(500).json({message: 'Not authenticated'})
   }
