@@ -9,8 +9,8 @@ import {authenticator} from 'otplib'
 import authenticateToken from './utils/auth'
 import {AuthenticatedRequest} from './interfaces/request'
 import {User} from './types/user'
-import {DexEntry} from './types/dex'
-import {badFormes, getSprite} from './utils/dex'
+import {DexEntry, PkmnEntry} from './types/dex'
+import {badFormes, getSprite, natureMap} from './utils/dex'
 
 dotenv.config()
 
@@ -242,6 +242,98 @@ app.get('/dex', authenticateToken, async (req: AuthenticatedRequest, res: Respon
 
     // Send the sorted results as a JSON response
     res.json(sortedResults)
+  } catch (err) {
+    // Handle any errors that occur during the process
+    if (err instanceof Error) {
+      return res.status(500).json({message: err.message})
+    }
+
+    return res.status(500).json({message: 'An unknown error occurred'})
+  }
+})
+
+/**
+ * GET /pokemon
+ *
+ * This endpoint retrieves a list of Pokémon entries from the database, optionally filtered by natures.
+ * It requires a valid JWT token to be provided in the request headers.
+ *
+ * @param {AuthenticatedRequest} req - The request object, containing the user's information and query parameters.
+ * @param {Response} res - The response object, used to send back the Pokémon entries or an error message.
+ */
+app.get('/pokemon', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  const {natures} = req.query
+  const requestedNatures = natures as string | undefined
+
+  // Initialize query parameters with the user ID
+  const queryParams: (string | number)[] = [req.user.id]
+  let natureParams = ''
+
+  if (requestedNatures) {
+    const naturesArray = Array.isArray(requestedNatures) ? requestedNatures : requestedNatures.split(',')
+
+    // Handle single nature filter
+    if (naturesArray.length === 1) {
+      const mappedNature = natureMap(naturesArray[0].trim())
+      if (mappedNature === null) {
+        return res.status(404).json({message: 'Invalid nature'})
+      }
+      natureParams += ' AND nature = ?'
+      queryParams.push(mappedNature)
+    } else if (naturesArray.length > 1) {
+      // Handle multiple natures filter
+      const conditions = naturesArray.map((nature) => {
+        const mappedNature = natureMap(nature.trim())
+        if (mappedNature === null) {
+          return res.status(404).json({message: 'Invalid nature'})
+        }
+        queryParams.push(mappedNature)
+        return 'nature = ?'
+      }).join(' OR ')
+      natureParams += ` AND (${conditions})`
+    }
+  }
+
+  try {
+    // Execute the query to retrieve Pokémon entries
+    const [rows] = await pool.query(
+      `SELECT a.id, a.formeid, CONCAT(b.name,'/',b.formename) AS name, a.color, COUNT(*) AS count
+      FROM (
+        SELECT id,
+          CASE formeid
+            WHEN '666' THEN CONCAT('666',LOWER(HEX(0xa0+(ot MOD 0x14))))                     -- Vivillon
+            WHEN '000c0' THEN CONCAT('000c',LOWER(CONV(1+(ot MOD 0x15),10,36)))              -- Maravol
+            WHEN '669' THEN CONCAT('669',LOWER(HEX(0xa0+(id MOD IF(id<=5587680,26,27)))))    -- Flabebe
+            WHEN '670' THEN CONCAT('670',LOWER(HEX(0xa0+(id MOD IF(id<=5587680,26,27)))))    -- Floette
+            WHEN '671' THEN CONCAT('671',LOWER(HEX(0xa0+(id MOD IF(id<=5587680,26,27)))))    -- Florges
+            WHEN '773a' THEN CONCAT('773c',(id MOD 7)+1)                                     -- Minior
+            WHEN '892' THEN CONCAT('892',LOWER(HEX(0xa+(id MOD 4))))                         -- Zarude
+            WHEN '655' THEN IF(id>4167413 AND (id MOD 10)=0, '655l', '655')                  -- Lefty Delphox
+            WHEN '924' THEN IF((id MOD 100)=42, '924a', '924')                               -- Maushold 3-Fam
+            WHEN '981' THEN IF((id MOD 100)=42, '981b', '981')                               -- Dudunsparce 3-Seg
+            WHEN '405s' THEN CONCAT('405s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)  -- Seasonal Turwig
+            WHEN '406s' THEN CONCAT('406s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)  -- Seasonal Grotle
+            WHEN '407s' THEN CONCAT('407s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)  -- Seasonal Torterra
+            WHEN '585' THEN CONCAT('585s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)   -- Seasonal Deerling
+            WHEN '586' THEN CONCAT('586s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)   -- Seasonal Sawsbuck
+          ELSE formeid END AS formeid,
+          CASE WHEN shiny='s' AND albino='a' THEN 'melanistic'
+            WHEN shiny='s' THEN 'shiny'
+            WHEN albino='a' THEN 'albino'
+          ELSE 'normal' END AS color
+        FROM pokemon
+        WHERE userid = ?
+        ` + natureParams + `
+      ) a
+      JOIN data_pokemon b USING (formeid)
+      GROUP BY formeid, color`,
+      queryParams
+    )
+
+    const results = rows as PkmnEntry[]
+
+    // Send the results as a JSON response
+    res.json(results)
   } catch (err) {
     // Handle any errors that occur during the process
     if (err instanceof Error) {

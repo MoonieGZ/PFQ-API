@@ -5,3 +5,11 @@ export interface DexEntry {
   formename: string;
   sprite?: string;
 }
+
+export interface PkmnEntry {
+  id: number;
+  formeid: string;
+  name: string;
+  color: string;
+  count: number;
+}
