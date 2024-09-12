@@ -265,6 +265,10 @@ app.get('/pokemon', authenticateToken, async (req: AuthenticatedRequest, res: Re
   const {natures} = req.query
   const requestedNatures = natures as string | undefined
 
+  if (req.user === undefined) {
+    return res.status(500).json({message: 'Not authenticated'})
+  }
+
   // Initialize query parameters with the user ID
   const queryParams: (string | number)[] = [req.user.id]
   let natureParams = ''
