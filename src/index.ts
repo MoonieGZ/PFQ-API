@@ -6,9 +6,11 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import {authenticator} from 'otplib'
 
-import User from './types/user'
 import authenticateToken from './utils/auth'
 import {AuthenticatedRequest} from './interfaces/request'
+import {User} from './types/user'
+import {DexEntry} from './types/dex'
+import {badFormes, getSprite} from './utils/dex'
 
 dotenv.config()
 
@@ -147,6 +149,99 @@ app.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Respons
 
     // Return the user's details
     res.json(user)
+  } catch (err) {
+    // Handle any errors that occur during the process
+    if (err instanceof Error) {
+      return res.status(500).json({message: err.message})
+    }
+
+    return res.status(500).json({message: 'An unknown error occurred'})
+  }
+})
+
+/**
+ * GET /dex
+ *
+ * This endpoint retrieves a list of Pokémon entries from the database, optionally filtered by types.
+ * The results are grouped by region and sorted by Pokémon name and form name.
+ * It requires a valid JWT token to be provided in the request headers.
+ *
+ * @param {AuthenticatedRequest} req - The request object, containing the user's information and query parameters.
+ * @param {Response} res - The response object, used to send back the Pokémon entries or an error message.
+ */
+app.get('/dex', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  const {types} = req.query
+  const requestedTypes = types as string | undefined
+
+  // Base query to retrieve Pokémon entries and their regions
+  let query = `
+    SELECT b.name AS region_name, a.formeid, a.name, a.formename 
+    FROM data_pokemon AS a 
+    JOIN data_regions AS b ON a.region = b.id
+  `
+
+  const queryParams: string[] = []
+
+  // If types are provided, add a WHERE clause to filter by types
+  if (requestedTypes) {
+    const typeArray = requestedTypes.split(',').map(type => type.trim())
+    query += ` WHERE a.type1 IN (${typeArray.map(() => '?').join(',')}) OR
+     a.type2 IN (${typeArray.map(() => '?').join(',')})`
+    queryParams.push(...typeArray, ...typeArray)
+  }
+
+  // Order the results by region name, Pokémon name, and form name
+  query += ' ORDER BY b.name ASC, a.name ASC, a.formename ASC'
+
+  try {
+    // Execute the query
+    const [rows] = await pool.query(query, queryParams)
+    const results = rows as DexEntry[]
+
+    // Group the results by region and filter out unwanted entries
+    const groupedByRegion: Record<string, Array<DexEntry>> =
+        results.reduce<Record<string, DexEntry[]>>((acc, entry) => {
+          if (entry.formename === 'Internal Data Forme') return acc
+          if (badFormes.includes(entry.formeid)) return acc
+
+          const sprite = getSprite(entry.formeid)
+          if (sprite == null) return acc
+
+          const region: string = entry.region_name || 'Unknown'
+          if (!acc[region]) {
+            acc[region] = []
+          }
+
+          const newEntry: DexEntry = {
+            formeid: entry.formeid,
+            name: entry.name,
+            formename: entry.formename,
+            sprite: sprite
+          }
+
+          acc[region].push(newEntry)
+
+          return acc
+        }, {})
+
+    // TODO: Allow a toggle for sorting (e.g. National Dex order)
+
+    // Sort the entries within each region
+    for (const region in groupedByRegion) {
+      groupedByRegion[region].sort((a, b) => {
+        const nameComparison = a.name.localeCompare(b.name)
+        return nameComparison === 0 ? a.formename.localeCompare(b.formename) : nameComparison
+      })
+    }
+
+    // Format the results for the response
+    const sortedResults = Object.entries(groupedByRegion).map(([region_name, pokemon]) => ({
+      region_name,
+      pokemon
+    }))
+
+    // Send the sorted results as a JSON response
+    res.json(sortedResults)
   } catch (err) {
     // Handle any errors that occur during the process
     if (err instanceof Error) {

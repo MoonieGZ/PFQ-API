@@ -1,4 +1,4 @@
-interface User {
+export interface User {
   id: number;
   name: string;
   name_display: string;
@@ -6,5 +6,3 @@ interface User {
   otp: string;
   staff: number;
 }
-
-export default User
