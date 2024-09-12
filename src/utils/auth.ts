@@ -2,11 +2,11 @@ import {NextFunction, Response} from 'express'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import User from '../types/user'
-import {Request} from '../interfaces/request'
+import {AuthenticatedRequest} from '../interfaces/request'
 
 dotenv.config()
 
-function authenticateToken(req: Request, res: Response, next: NextFunction) {
+function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const token = req.headers['authorization']
 
   if (!token) {
