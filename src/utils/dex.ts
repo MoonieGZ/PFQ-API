@@ -1,7 +1,17 @@
 import spriteData from '../data/sprites.json'
 import {PokemonJson} from '../types/sprite'
 
-export const badFormes = ['666', '669', '670', '671', '000c0', '892']
+export const badFormes = [
+  '000',
+  '000c0',
+  '666',
+  '669',
+  '670',
+  '671',
+  '804a',
+  '892',
+  '1002a'
+]
 
 export function getSprite(formeid: string) {
   try {

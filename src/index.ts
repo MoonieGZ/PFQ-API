@@ -11,6 +11,8 @@ import {AuthenticatedRequest} from './interfaces/request'
 import {User} from './types/user'
 import {DexEntry, PkmnEntry} from './types/dex'
 import {badFormes, getSprite, natureMap} from './utils/dex'
+import {BoostsResponse} from './types/boosts'
+import {areSameDay} from './utils/date'
 
 dotenv.config()
 
@@ -26,6 +28,7 @@ const pool = mysql.createPool({
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
+  timezone: 'Z',
 })
 
 /**
@@ -313,8 +316,8 @@ app.get('/pokemon', authenticateToken, async (req: AuthenticatedRequest, res: Re
             WHEN '773a' THEN CONCAT('773c',(id MOD 7)+1)                                     -- Minior
             WHEN '892' THEN CONCAT('892',LOWER(HEX(0xa+(id MOD 4))))                         -- Zarude
             WHEN '655' THEN IF(id>4167413 AND (id MOD 10)=0, '655l', '655')                  -- Lefty Delphox
-            WHEN '924' THEN IF((id MOD 100)=42, '924a', '924')                               -- Maushold 3-Fam
-            WHEN '981' THEN IF((id MOD 100)=42, '981b', '981')                               -- Dudunsparce 3-Seg
+            WHEN '924' THEN IF((id MOD 100)=42, '924a', '924')                               -- Maushold Family of Three
+            WHEN '981' THEN IF((id MOD 100)=42, '981b', '981')                               -- Dudunsparce Three Segment
             WHEN '405s' THEN CONCAT('405s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)  -- Seasonal Turwig
             WHEN '406s' THEN CONCAT('406s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)  -- Seasonal Grotle
             WHEN '407s' THEN CONCAT('407s',(MONTH(NOW())-(DAY(NOW())<=20)) DIV 3 MOD 4 + 1)  -- Seasonal Torterra
@@ -338,6 +341,122 @@ app.get('/pokemon', authenticateToken, async (req: AuthenticatedRequest, res: Re
 
     // Send the results as a JSON response
     res.json(results)
+  } catch (err) {
+    // Handle any errors that occur during the process
+    if (err instanceof Error) {
+      return res.status(500).json({message: err.message})
+    }
+
+    return res.status(500).json({message: 'An unknown error occurred'})
+  }
+})
+
+/**
+ * GET /boosts
+ *
+ * This endpoint retrieves the user's current boosts and statuses.
+ * It requires a valid JWT token to be provided in the request headers.
+ * If the token is valid, it queries the database for various user boosts and returns them.
+ *
+ * @param {AuthenticatedRequest} req - The request object, containing the authenticated user's ID in `req.user.id`.
+ * @param {Response} res - The response object, used to send back the user's boosts or an error message.
+ */
+app.get('/boosts', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  if (req.user === undefined) {
+    return res.status(500).json({message: 'Not authenticated'})
+  }
+
+  const nowUTC = new Date()
+
+  const boosts: BoostsResponse = {
+    hyperMode: false,
+    silverAmulet: false,
+    goldAmulet: false,
+    cobaltAmulet: false,
+    shinyCharm: false,
+    shinyChainName: '',
+    shinyChainCount: 0,
+    shinyChainForme: '',
+    uberCharm: false,
+    typeRace: false,
+    albinoLevel: 0,
+    zCrystal: false,
+    seiPower: 0,
+    potd: false
+  }
+
+  try {
+    //region HyperMode
+    const [users] = await pool.query('SELECT staff, ultimate FROM users WHERE id = ?', [req.user.id])
+
+    if ((users as never[]).length === 0) {
+      return res.status(401).json({message: 'No such user'})
+    }
+
+    const userResult = (users as { staff: number, ultimate: Date }[])[0]
+    boosts.hyperMode = (userResult.staff > 0 || userResult.ultimate > nowUTC)
+    //endregion
+
+    //region Items
+    const [items] = await pool.query('SELECT item, quantity FROM inventory WHERE userid = ? AND item IN(1041,1042,1043)', [req.user.id])
+    const itemResults = items as { item: number, quantity: number }[]
+
+    itemResults.forEach(item => {
+      if (item.item === 1041) boosts.silverAmulet = item.quantity > 0
+      if (item.item === 1042) boosts.goldAmulet = item.quantity > 0
+      if (item.item === 1043) boosts.cobaltAmulet = item.quantity > 0
+    })
+    //endregion
+
+    //region User Stats
+    const [userStats] = await pool.query(
+      `SELECT u.shinycharm, u.radar_id, u.radar_chain, u.ubercharm, p.name, p.formename, p.type1, p.type2
+         FROM users_stats u JOIN data_pokemon p ON  u.radar_id = p.formeid
+         WHERE u.userid = ?`,
+      [req.user.id])
+
+    const userStatsResult = (userStats as
+        { shinycharm: Date, radar_id: string, radar_chain: number, ubercharm: Date, name: string, formename: string, type1: string, type2: string }[])[0]
+
+    boosts.shinyCharm = userStatsResult.shinycharm > nowUTC
+    boosts.shinyChainName = userStatsResult.name + (userStatsResult.formename ? ` [${userStatsResult.formename}]` : '')
+    boosts.shinyChainCount = userStatsResult.radar_chain
+    boosts.shinyChainForme = userStatsResult.radar_id
+    boosts.uberCharm = userStatsResult.ubercharm > nowUTC
+    //endregion
+
+    //region Type Race
+    const types = [userStatsResult.type1, userStatsResult.type2 || '']
+
+    const [typeWar] = await pool.query('SELECT type FROM typewar WHERE userid = ? AND month = DATE_FORMAT(CURDATE(), \'%Y-%m-01\')', [req.user.id])
+    const typeWarResult = (typeWar as { type: string }[])[0]
+
+    boosts.typeRace = types.includes(typeWarResult.type)
+    //endregion
+
+    //region Albino Hunt
+    const [albinoHunt] = await pool.query('SELECT level, charged, typeboost, typetimestamp FROM albino_hunt WHERE userid = ?', [req.user.id])
+    const albinoHuntResult = (albinoHunt as { level: number, charged: Date, typeboost: string, typetimestamp: Date }[])[0]
+
+    boosts.albinoLevel = areSameDay(albinoHuntResult.charged, nowUTC) ? albinoHuntResult.level : 0
+    boosts.zCrystal = albinoHuntResult.typetimestamp > nowUTC && types.includes(albinoHuntResult.typeboost)
+    //endregion
+
+    //region Counters
+    const [counters] = await pool.query('SELECT bonus, bonusday FROM counters WHERE id = 8')
+    const countersResult = (counters as { bonus: number, bonusday: Date }[])[0]
+
+    boosts.seiPower = areSameDay(countersResult.bonusday, nowUTC) ? countersResult.bonus : 0
+    //endregion
+
+    //region POTD
+    const [potdForecast] = await pool.query('SELECT potd FROM forecast_potd WHERE date = CURDATE()')
+    const potdForecastResult = (potdForecast as { potd: string }[])[0]
+
+    boosts.potd = potdForecastResult?.potd === boosts.shinyChainForme
+    //endregion
+
+    res.json(boosts)
   } catch (err) {
     // Handle any errors that occur during the process
     if (err instanceof Error) {
