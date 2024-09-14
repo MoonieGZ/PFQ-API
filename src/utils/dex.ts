@@ -13,11 +13,27 @@ export const badFormes = [
   '1002a'
 ]
 
-export function getSprite(formeid: string) {
+export function getMiniSprite(formeid: string) {
   try {
     const data: PokemonJson = spriteData
     if (data && data[formeid] && data[formeid].sprites['m-icon']) {
       return data[formeid].sprites['m-icon'].split('').join('/') + '.png'
+    } else {
+      return null
+    }
+  } catch (err) {
+    if (err instanceof Error) {
+      throw new Error('Error fetching sprite data: ' + err.message)
+    }
+    throw new Error('Error fetching sprite data')
+  }
+}
+
+export function getEggSprite(formeid: string) {
+  try {
+    const data: PokemonJson = spriteData
+    if (data && data[formeid] && data[formeid].sprites['egg']) {
+      return data[formeid].sprites['egg'].split('').join('/') + '.png'
     } else {
       return null
     }

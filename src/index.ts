@@ -10,9 +10,10 @@ import authenticateToken from './utils/auth'
 import {AuthenticatedRequest} from './interfaces/request'
 import {User} from './types/user'
 import {DexEntry, PkmnEntry} from './types/dex'
-import {badFormes, getSprite, natureMap} from './utils/dex'
+import {badFormes, getEggSprite, getMiniSprite, natureMap} from './utils/dex'
 import {BoostsResponse} from './types/boosts'
 import {areSameDay} from './utils/date'
+import {decodeShortLink} from './utils/shortlinks'
 
 dotenv.config()
 
@@ -207,7 +208,7 @@ app.get('/dex', authenticateToken, async (req: AuthenticatedRequest, res: Respon
           if (entry.formename === 'Internal Data Forme') return acc
           if (badFormes.includes(entry.formeid)) return acc
 
-          const sprite = getSprite(entry.formeid)
+          const sprite = getMiniSprite(entry.formeid)
           if (sprite == null) return acc
 
           const region: string = entry.region_name || 'Unknown'
@@ -465,6 +466,30 @@ app.get('/boosts', authenticateToken, async (req: AuthenticatedRequest, res: Res
 
     return res.status(500).json({message: 'An unknown error occurred'})
   }
+})
+
+/**
+ * GET /getEggSprite
+ *
+ * This endpoint retrieves the egg sprite for a given Pokémon based on a summary provided in the query parameters.
+ * The summary is decoded to get the Pokémon ID, which is then used to query the database for the formeid.
+ * The formeid is used to get the corresponding egg sprite, which is returned as a JSON response.
+ *
+ * @param {Request} req - The request object, containing the summary in the query parameters.
+ * @param {Response} res - The response object, used to send back the egg sprite or an error message.
+ */
+app.get('/getEggSprite', async (req: Request, res: Response) => {
+  const {summary} = req.query
+  if (summary == null) {
+    return res.status(400).json({message: 'No summary provided'})
+  }
+
+  const id = decodeShortLink(summary as string) as number
+
+  const [pkmn] = await pool.query('SELECT formeid FROM pokemon WHERE id = ?', [id])
+  const pkmnResult = (pkmn as { formeid: string }[])[0]
+  const sprite = getEggSprite(pkmnResult.formeid)
+  res.json(sprite)
 })
 
 app.listen(port, () => {
