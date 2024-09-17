@@ -8,7 +8,7 @@ authentication and server health checks.
 ## Features
 
 - **Health Check Endpoint**: Verify the server's health status.
-- **User Login**: Authenticate users with username, password, and optional OTP (One-Time Password).
+- **User Login**: Authenticate users with api key.
 - **User Information**: Retrieve authenticated user's information.
 
 ## Endpoints
@@ -20,30 +20,12 @@ Checks the health status of the server.
 - **Response**:
     - `200 OK`: `{ "message": "ok" }`
 
-### POST /login
-
-Handles user login and returns a JWT token if the credentials are valid.
-
-- **Request Body**:
-    - `username`: string
-    - `password`: string
-    - `otp` (optional): string
-
-- **Responses**:
-    - `200 OK`: `{ "token": "JWT_TOKEN" }`
-    - `401 Unauthorized`: `{ "message": "No such user" }`
-    - `401 Unauthorized`: `{ "message": "2FA required" }`
-    - `401 Unauthorized`: `{ "message": "Invalid 2FA code" }`
-    - `401 Unauthorized`: `{ "message": "Invalid credentials" }`
-    - `500 Internal Server Error`: `{ "message": "JWT secret not set" }`
-    - `500 Internal Server Error`: `{ "message": "An unknown error occurred" }`
-
 ### GET /me
 
 Retrieves the authenticated user's information.
 
 - **Headers**:
-    - `Authorization`: `Bearer JWT_TOKEN`
+    - `Authorization`: `API_KEY`
 
 - **Responses**:
     - `200 OK`: `{ "id": number, "name": string, "displayname": string, "staff": boolean }`
