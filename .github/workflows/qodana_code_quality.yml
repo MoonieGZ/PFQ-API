@@ -31,7 +31,7 @@ jobs:
             exit 1
           fi
       - name: Setup Node
-        uses: actions/setup-node@v4.0.3
+        uses: actions/setup-node@v4.0.4
         with:
           node-version: '20.17.0'
           cache: ${{ steps.detect-package-manager.outputs.manager }}
