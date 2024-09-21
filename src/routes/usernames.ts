@@ -16,8 +16,7 @@ export async function RouteGetUsernameHistory(req: AuthenticatedRequest, res: Re
 
   try {
     const [users] = await pool.query(
-      'SELECT id, name, name_display as displayname, staff FROM users WHERE id = ?',
-      [req.user.id]
+      'SELECT id FROM users WHERE name = ?', [requestedName]
     )
 
     if (!(users as User[]).length) {
