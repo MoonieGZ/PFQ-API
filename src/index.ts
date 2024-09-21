@@ -9,7 +9,7 @@ import {RouteDex} from './routes/dex'
 import {RoutePokemon} from './routes/pokemon'
 import {RouteBoosts} from './routes/boosts'
 import {RouteEggSprite} from './routes/sprite'
-import {RouteDecodeShortlink, RouteEncodeShortlink} from './routes/shortlinks'
+import {RouteDecodeShortlink, RouteEncodeShortlink, RouteFromUsername} from './routes/shortlinks'
 import {RouteGetUsernameHistory} from './routes/usernames'
 
 dotenv.config()
@@ -116,6 +116,16 @@ app.get('/shortlink/encode', authenticateToken, RouteEncodeShortlink)
  * @param {Response} res - The response object.
  */
 app.get('/shortlink/decode', authenticateToken, RouteDecodeShortlink)
+
+/**
+ * Route to get shortlink from a username.
+ * Requires authentication.
+ * @route GET /shortlink/from-username
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/shortlink/from-username', authenticateToken, RouteFromUsername)
 
 /**
  * Route to get the username history.
