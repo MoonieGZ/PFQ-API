@@ -18,7 +18,7 @@ dotenv.config()
  * @param {Response} res - The response object, used to send back error messages if authentication fails.
  * @param {NextFunction} next - The next middleware function in the stack.
  */
-async function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const apiKey = req.headers['authorization']
 
   if (!apiKey) {
@@ -61,4 +61,15 @@ async function authenticateToken(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
-export default authenticateToken
+export async function isStaff(userid: number) {
+  const [users] = await pool.query(
+    'SELECT id, name, staff FROM users WHERE id = ?', [userid]
+  )
+
+  if ((users as never[]).length === 0) {
+    return false
+  }
+
+  const results = users as User[]
+  return results[0].staff > 0
+}
