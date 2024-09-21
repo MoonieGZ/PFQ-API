@@ -26,38 +26,27 @@ export async function authenticateToken(req: AuthenticatedRequest, res: Response
   }
 
   try {
-    // Query the database to find the user ID associated with the provided API key
     const [userid] = await pool.query('SELECT `userid` from `apikeys` WHERE `key` = ?', [apiKey])
 
-    // If no user ID is found, return a 401 status with an error message
     if ((userid as never[]).length === 0) {
       return res.status(401).json({message: 'No such user'})
     }
 
     const foundUserId = userid as { userid: string }[]
 
-    // Query the database to retrieve the user details using the found user ID
     const [users] = await pool.query(
       'SELECT id, name, staff FROM users WHERE id = ?', [foundUserId[0].userid]
     )
 
-    // If no user details are found, return a 401 status with an error message
     if ((users as never[]).length === 0) {
       return res.status(401).json({message: 'No such user'})
     }
 
-    // Cast the query result to the User type and attach the user details to the request object
     const results = users as User[]
     req.user = results[0] as User
     next()
   } catch (err) {
-    // Handle any errors that occur during the process
-    if (err instanceof Error) {
-      return res.status(500).json({message: err.message})
-    }
-
-    // Return a generic error message if the error is not an instance of Error
-    return res.status(500).json({message: 'An unknown error occurred'})
+    return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
   }
 }
 
@@ -71,5 +60,5 @@ export async function isStaff(userid: number) {
   }
 
   const results = users as User[]
-  return results[0].staff > 0
+  return results[0].staff ? results[0].staff : false
 }
