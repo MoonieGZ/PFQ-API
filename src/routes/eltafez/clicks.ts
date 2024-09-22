@@ -4,6 +4,7 @@ import {pool} from '../../index'
 import {isBirthdayBonus} from '../../utils/date'
 import {ClickBoostResponse, ClickBoostResult} from '../../types/eltafez/clicks'
 import {getBadges} from '../../utils/wishforge'
+import {getVWave} from '../../utils/vwave'
 
 export async function RouteGetClickBoosts(req: AuthenticatedRequest, res: Response) {
   if (!req.user) {
@@ -32,8 +33,9 @@ export async function RouteGetClickBoosts(req: AuthenticatedRequest, res: Respon
     }
 
     const badges = await getBadges(req.user.id)
+    const vwave = await getVWave()
 
-    res.json({boosts: result, badges: badges})
+    res.json({boosts: result, badges: badges, vwave})
   } catch (err) {
     return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
   }

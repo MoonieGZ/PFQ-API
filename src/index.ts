@@ -14,6 +14,7 @@ import {RouteGetUsernameHistory} from './routes/usernames'
 import {RouteGetTypeRaceRotation, RouteGetTypeRaceTeam} from './routes/typerace'
 import {RouteGetClickBoosts} from './routes/eltafez/clicks'
 import {RouteGetWishforgeBadges} from './routes/wishforge'
+import {RouteGetVWave} from './routes/vwave'
 
 dotenv.config()
 
@@ -169,6 +170,16 @@ app.get('/badges', authenticateToken, RouteGetWishforgeBadges)
  * @param {Response} res - The response object.
  */
 app.get('/tr/team', authenticateToken, RouteGetTypeRaceTeam)
+
+/**
+ * Route to get V-Wave information.
+ * Requires authentication.
+ * @route GET /vwave
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/vwave', authenticateToken, RouteGetVWave)
 
 /**
  * Route to get click boosts information.
