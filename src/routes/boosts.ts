@@ -36,8 +36,8 @@ export async function RouteBoosts(req: AuthenticatedRequest, res: Response) {
       return res.status(401).json({message: 'No such user'})
     }
 
-    const userResult = (users as { staff: number, ultimate: Date }[])[0]
-    boosts.hyperMode = (userResult.staff > 0 || userResult.ultimate > nowUTC)
+    const userResult = (users as { staff: number, ultimate?: Date }[])[0]
+    boosts.hyperMode = (userResult.staff > 0 || (userResult.ultimate !== undefined && userResult.ultimate > nowUTC))
     //endregion
 
     //region Items
