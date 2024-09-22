@@ -11,6 +11,9 @@ import {RouteBoosts} from './routes/boosts'
 import {RouteEggSprite} from './routes/sprite'
 import {RouteDecodeShortlink, RouteEncodeShortlink, RouteFromUsername} from './routes/shortlinks'
 import {RouteGetUsernameHistory} from './routes/usernames'
+import {RouteGetTypeRaceRotation, RouteGetTypeRaceTeam} from './routes/typerace'
+import {RouteGetClickBoosts} from './routes/eltafez/clicks'
+import {RouteGetWishforgeBadges} from './routes/wishforge'
 
 dotenv.config()
 
@@ -136,6 +139,46 @@ app.get('/shortlink/from-username', authenticateToken, RouteFromUsername)
  * @param {Response} res - The response object.
  */
 app.get('/username-history', authenticateToken, RouteGetUsernameHistory)
+
+/**
+ * Route to get the Type Race rotation information.
+ * Requires authentication.
+ * @route GET /tr/rotation
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/tr/rotation', authenticateToken, RouteGetTypeRaceRotation)
+
+/**
+ * Route to get Wishforge badges information.
+ * Requires authentication.
+ * @route GET /badges
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/badges', authenticateToken, RouteGetWishforgeBadges)
+
+/**
+ * Route to get the Type Race team.
+ * Requires authentication.
+ * @route GET /tr/team
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/tr/team', authenticateToken, RouteGetTypeRaceTeam)
+
+/**
+ * Route to get click boosts information.
+ * Requires authentication.
+ * @route GET /eltafez/clickboosts
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/eltafez/clickboosts', authenticateToken, RouteGetClickBoosts)
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
