@@ -5,6 +5,10 @@ import {badFormes, getMiniSprite} from '../utils/dex'
 import {pool} from '../index'
 
 export async function RouteDex(req: AuthenticatedRequest, res: Response) {
+  if (!req.user) {
+    return res.status(403).json({error: 'Unauthorized'})
+  }
+
   const {types} = req.query
   const requestedTypes = types as string | undefined
 

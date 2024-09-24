@@ -4,7 +4,7 @@ import {isStaff} from '../utils/auth'
 import {pool} from '../index'
 import {User} from '../types/user'
 
-export async function RouteGetUsernameHistory(req: AuthenticatedRequest, res: Response) {
+export async function RouteUsernameHistory(req: AuthenticatedRequest, res: Response) {
   if (!req.user || !await isStaff(req.user.id)) {
     return res.status(403).json({error: 'Unauthorized'})
   }

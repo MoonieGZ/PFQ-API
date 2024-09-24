@@ -10,11 +10,12 @@ import {RoutePokemon} from './routes/pokemon'
 import {RouteBoosts} from './routes/boosts'
 import {RouteEggSprite} from './routes/sprite'
 import {RouteDecodeShortlink, RouteEncodeShortlink, RouteFromUsername} from './routes/shortlinks'
-import {RouteGetUsernameHistory} from './routes/usernames'
-import {RouteGetTypeRaceRotation, RouteGetTypeRaceTeam} from './routes/typerace'
-import {RouteGetClickBoosts} from './routes/eltafez/clicks'
-import {RouteGetWishforgeBadges} from './routes/wishforge'
-import {RouteGetVWave} from './routes/vwave'
+import {RouteUsernameHistory} from './routes/usernames'
+import {RouteTypeRaceRotation, RouteTypeRaceTeam} from './routes/typerace'
+import {RouteClickBoosts} from './routes/eltafez/clicks'
+import {RouteWishforgeBadges} from './routes/wishforge'
+import {RouteVWave} from './routes/vwave'
+import {RouteInventoryCurrency, RouteInventoryGems} from './routes/inventory'
 
 dotenv.config()
 
@@ -139,7 +140,7 @@ app.get('/shortlink/from-username', authenticateToken, RouteFromUsername)
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-app.get('/username-history', authenticateToken, RouteGetUsernameHistory)
+app.get('/username-history', authenticateToken, RouteUsernameHistory)
 
 /**
  * Route to get the Type Race rotation information.
@@ -149,17 +150,7 @@ app.get('/username-history', authenticateToken, RouteGetUsernameHistory)
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-app.get('/tr/rotation', authenticateToken, RouteGetTypeRaceRotation)
-
-/**
- * Route to get Wishforge badges information.
- * Requires authentication.
- * @route GET /badges
- * @middleware authenticateToken - Middleware to authenticate the token.
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- */
-app.get('/badges', authenticateToken, RouteGetWishforgeBadges)
+app.get('/tr/rotation', authenticateToken, RouteTypeRaceRotation)
 
 /**
  * Route to get the Type Race team.
@@ -169,7 +160,17 @@ app.get('/badges', authenticateToken, RouteGetWishforgeBadges)
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-app.get('/tr/team', authenticateToken, RouteGetTypeRaceTeam)
+app.get('/tr/team', authenticateToken, RouteTypeRaceTeam)
+
+/**
+ * Route to get Wishforge badges information.
+ * Requires authentication.
+ * @route GET /badges
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/badges', authenticateToken, RouteWishforgeBadges)
 
 /**
  * Route to get V-Wave information.
@@ -179,7 +180,7 @@ app.get('/tr/team', authenticateToken, RouteGetTypeRaceTeam)
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-app.get('/vwave', authenticateToken, RouteGetVWave)
+app.get('/vwave', authenticateToken, RouteVWave)
 
 /**
  * Route to get click boosts information.
@@ -189,7 +190,27 @@ app.get('/vwave', authenticateToken, RouteGetVWave)
  * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-app.get('/eltafez/clickboosts', authenticateToken, RouteGetClickBoosts)
+app.get('/eltafez/clickboosts', authenticateToken, RouteClickBoosts)
+
+/**
+ * Route to get inventory gems information.
+ * Requires authentication.
+ * @route GET /inventory/gems
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/inventory/gems', authenticateToken, RouteInventoryGems)
+
+/**
+ * Route to get inventory currency information.
+ * Requires authentication.
+ * @route GET /inventory/currency
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/inventory/currency', authenticateToken, RouteInventoryCurrency)
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)

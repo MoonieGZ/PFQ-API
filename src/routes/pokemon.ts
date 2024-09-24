@@ -5,12 +5,12 @@ import {PkmnEntry} from '../types/dex'
 import {pool} from '../index'
 
 export async function RoutePokemon(req: AuthenticatedRequest, res: Response) {
+  if (!req.user) {
+    return res.status(403).json({error: 'Unauthorized'})
+  }
+
   const {natures} = req.query
   const requestedNatures = natures as string | undefined
-
-  if (req.user === undefined) {
-    return res.status(500).json({message: 'Not authenticated'})
-  }
 
   const queryParams: (string | number)[] = [req.user.id]
   let natureParams = ''

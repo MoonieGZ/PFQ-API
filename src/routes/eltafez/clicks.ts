@@ -6,7 +6,7 @@ import {ClickBoostResponse, ClickBoostResult} from '../../types/eltafez/clicks'
 import {getBadges} from '../../utils/wishforge'
 import {getVWave} from '../../utils/vwave'
 
-export async function RouteGetClickBoosts(req: AuthenticatedRequest, res: Response) {
+export async function RouteClickBoosts(req: AuthenticatedRequest, res: Response) {
   if (!req.user) {
     return res.status(403).json({error: 'Unauthorized'})
   }

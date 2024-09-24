@@ -2,7 +2,7 @@ import {AuthenticatedRequest} from '../interfaces/request'
 import {Response} from 'express'
 import {getBadges} from '../utils/wishforge'
 
-export async function RouteGetWishforgeBadges(req: AuthenticatedRequest, res: Response) {
+export async function RouteWishforgeBadges(req: AuthenticatedRequest, res: Response) {
   if (!req.user) {
     return res.status(403).json({error: 'Unauthorized'})
   }
