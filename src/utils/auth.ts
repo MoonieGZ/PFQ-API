@@ -26,16 +26,9 @@ export async function authenticateToken(req: AuthenticatedRequest, res: Response
   }
 
   try {
-    const [userid] = await pool.query('SELECT `userid` from `apikeys` WHERE `key` = ?', [apiKey])
-
-    if ((userid as never[]).length === 0) {
-      return res.status(401).json({message: 'No such user'})
-    }
-
-    const foundUserId = userid as { userid: string }[]
-
     const [users] = await pool.query(
-      'SELECT id, name, staff FROM users WHERE id = ?', [foundUserId[0].userid]
+      'SELECT users.id, users.name, users.staff FROM users JOIN apikeys ON users.id = apikeys.userid WHERE apikeys.key = ?',
+      [apiKey]
     )
 
     if ((users as never[]).length === 0) {
