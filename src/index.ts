@@ -15,7 +15,7 @@ import {RouteTypeRaceRotation, RouteTypeRaceTeam} from './routes/typerace'
 import {RouteClickBoosts} from './routes/eltafez/clicks'
 import {RouteWishforgeBadges} from './routes/wishforge'
 import {RouteVWave} from './routes/vwave'
-import {RouteInventoryCurrency, RouteInventoryGems} from './routes/inventory'
+import {RouteInventoryCurrency, RouteInventoryGems, RouteInventoryMarket} from './routes/inventory'
 
 dotenv.config()
 
@@ -211,6 +211,16 @@ app.get('/inventory/gems', authenticateToken, RouteInventoryGems)
  * @param {Response} res - The response object.
  */
 app.get('/inventory/currency', authenticateToken, RouteInventoryCurrency)
+
+/**
+ * Route to get inventory market value.
+ * Requires authentication.
+ * @route GET /inventory/market
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/inventory/market', authenticateToken, RouteInventoryMarket)
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
