@@ -23,7 +23,7 @@ export async function RouteInventoryCurrency(req: AuthenticatedRequest, res: Res
   }
 
   try {
-    const [currency] = await pool.query('SELECT b.credits, b.gold, b.zophan FROM `apikeys` a JOIN `users` b ON a.userid = b.id WHERE a.userid = ?', [req.user.id])
+    const [currency] = await pool.query('SELECT credits, gold, zophan FROM `users` WHERE a.userid = ?', [req.user.id])
     res.json({inventory: currency})
   } catch (err) {
     return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
