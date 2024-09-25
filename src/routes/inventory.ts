@@ -37,7 +37,7 @@ export async function RouteInventoryMarket(req: AuthenticatedRequest, res: Respo
 
   try {
     const [inventory] = await pool.query(
-      `SELECT i.item, d.name, i.quantity MIN(m.price) AS price 
+      `SELECT i.item, d.name, i.quantity, MIN(m.price) AS price 
       FROM inventory i 
       JOIN data_items d ON i.item = d.id 
       LEFT JOIN marketboard_items_new m ON i.item = m.itemid 
