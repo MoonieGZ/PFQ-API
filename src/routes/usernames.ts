@@ -2,7 +2,6 @@ import {AuthenticatedRequest} from '../interfaces/request'
 import {Response} from 'express'
 import {isStaff} from '../utils/auth'
 import {pool} from '../index'
-import {User} from '../types/user'
 
 export async function RouteUsernameHistory(req: AuthenticatedRequest, res: Response) {
   if (!req.user || !await isStaff(req.user.id)) {
@@ -15,18 +14,21 @@ export async function RouteUsernameHistory(req: AuthenticatedRequest, res: Respo
   }
 
   try {
-    const [users] = await pool.query(
-      'SELECT id FROM users WHERE name = ?', [requestedName]
+    const [results] = await pool.query(
+      `
+        SELECT u.id, unc.*
+        FROM users u
+        LEFT JOIN user_name_changes unc ON u.id = unc.userid
+        WHERE u.name = ?
+      `,
+      [requestedName]
     )
 
-    if (!(users as User[]).length) {
+    if (!(results as never[]).length) {
       return res.status(404).json({message: 'User not found'})
     }
 
-    const user = (users as User[])[0]
-    const [usernameChanges] = await pool.query('SELECT * FROM user_name_changes WHERE userid = ?', [user.id])
-
-    res.json(usernameChanges)
+    res.json(results)
   } catch (err) {
     return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
   }
