@@ -3,6 +3,9 @@ import {Response} from 'express'
 import {natureMap} from '../utils/dex'
 import {PkmnEntry} from '../types/dex'
 import {pool} from '../index'
+import {decodeShortLink} from '../utils/shortlinks'
+import {decodeStats} from '../utils/pokemon'
+import {RowDataPacket} from 'mysql2'
 
 export async function RoutePokemon(req: AuthenticatedRequest, res: Response) {
   if (!req.user) {
@@ -76,6 +79,37 @@ export async function RoutePokemon(req: AuthenticatedRequest, res: Response) {
     const results = rows as PkmnEntry[]
 
     res.json(results)
+  } catch (err) {
+    return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
+  }
+}
+
+export async function RoutePokemonIV(req: AuthenticatedRequest, res: Response) {
+  if (!req.user) {
+    return res.status(403).json({error: 'Unauthorized'})
+  }
+
+  const {id} = req.query
+  const requestedShortlink = id as string | undefined
+
+  if (!requestedShortlink) {
+    return res.status(404).json({message: 'Invalid ID: No ID provided'})
+  }
+
+  const requestedId = decodeShortLink(requestedShortlink)
+  if (requestedId === null) {
+    return res.status(404).json({message: 'Invalid ID: Invalid shortlink'})
+  }
+
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT iv FROM pokemon WHERE id = ? LIMIT 1', [requestedId])
+
+    const result = rows.length > 0 ? (rows[0] as { iv: number }).iv : null
+    if (result === null) {
+      return res.status(404).json({message: 'Failed to fetch IV.'})
+    }
+
+    res.json(decodeStats(result))
   } catch (err) {
     return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
   }

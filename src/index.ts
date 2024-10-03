@@ -6,7 +6,7 @@ import mysql from 'mysql2/promise'
 import {authenticateToken} from './utils/auth'
 import {RouteMe} from './routes/me'
 import {RouteDex} from './routes/dex'
-import {RoutePokemon} from './routes/pokemon'
+import {RoutePokemon, RoutePokemonIV} from './routes/pokemon'
 import {RouteBoosts} from './routes/boosts'
 import {RouteEggSprite} from './routes/sprite'
 import {RouteDecodeShortlink, RouteEncodeShortlink, RouteFromUsername} from './routes/shortlinks'
@@ -83,6 +83,16 @@ app.get('/dex', authenticateToken, RouteDex)
  * @param {Response} res - The response object.
  */
 app.get('/pokemon', authenticateToken, RoutePokemon)
+
+/**
+ * Route to get Pokémon IV information.
+ * Requires authentication.
+ * @route GET /pokemon/iv
+ * @middleware authenticateToken - Middleware to authenticate the token.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ */
+app.get('/pokemon/iv', authenticateToken, RoutePokemonIV)
 
 /**
  * Route to get boosts information.
