@@ -114,7 +114,7 @@ export async function RoutePokemonIV(req: Request, res: Response) {
     const iv = decodeStats(result)
     cache[requestedShortlink] = iv
 
-    res.json(iv)
+    res.json({value: iv, cached: false})
   } catch (err) {
     return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
   }
