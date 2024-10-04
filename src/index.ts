@@ -89,10 +89,9 @@ app.get('/pokemon', authenticateToken, RoutePokemon)
  * Requires authentication.
  * @route GET /pokemon/iv
  * @middleware authenticateToken - Middleware to authenticate the token.
- * @param {Request} req - The request object.
  * @param {Response} res - The response object.
  */
-app.get('/pokemon/iv', authenticateToken, RoutePokemonIV)
+app.get('/pokemon/iv', RoutePokemonIV)
 
 /**
  * Route to get boosts information.
