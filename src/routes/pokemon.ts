@@ -84,12 +84,18 @@ export async function RoutePokemon(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+const cache: { [key: string]: number[] } = {}
+
 export async function RoutePokemonIV(req: Request, res: Response) {
   const {id} = req.query
   const requestedShortlink = id as string | undefined
 
   if (!requestedShortlink) {
     return res.status(404).json({message: 'Invalid ID: No ID provided'})
+  }
+
+  if (cache[requestedShortlink]) {
+    return res.json({value: cache[requestedShortlink], cached: true})
   }
 
   const requestedId = decodeShortLink(requestedShortlink)
@@ -105,7 +111,10 @@ export async function RoutePokemonIV(req: Request, res: Response) {
       return res.status(404).json({message: 'Failed to fetch IV.'})
     }
 
-    res.json(decodeStats(result))
+    const iv = decodeStats(result)
+    cache[requestedShortlink] = iv
+
+    res.json(iv)
   } catch (err) {
     return res.status(500).json({message: err instanceof Error ? err.message : 'An unknown error occurred'})
   }
