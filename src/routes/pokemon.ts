@@ -1,5 +1,5 @@
 import {AuthenticatedRequest} from '../interfaces/request'
-import {Response} from 'express'
+import {Request, Response} from 'express'
 import {natureMap} from '../utils/dex'
 import {PkmnEntry} from '../types/dex'
 import {pool} from '../index'
@@ -84,11 +84,7 @@ export async function RoutePokemon(req: AuthenticatedRequest, res: Response) {
   }
 }
 
-export async function RoutePokemonIV(req: AuthenticatedRequest, res: Response) {
-  if (!req.user) {
-    return res.status(403).json({error: 'Unauthorized'})
-  }
-
+export async function RoutePokemonIV(req: Request, res: Response) {
   const {id} = req.query
   const requestedShortlink = id as string | undefined
 
