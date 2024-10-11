@@ -104,7 +104,7 @@ export async function RoutePokemonIV(req: Request, res: Response) {
   }
 
   try {
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT iv FROM pokemon WHERE id = ? LIMIT 1', [requestedId])
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT iv FROM pokemon WHERE id = ? AND stage = pokemon LIMIT 1', [requestedId])
 
     const result = rows.length > 0 ? (rows[0] as { iv: number }).iv : null
     if (result === null) {
