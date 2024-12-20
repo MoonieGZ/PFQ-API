@@ -79,6 +79,7 @@ export async function RouteBoosts(req: AuthenticatedRequest, res: Response) {
 
     //region Albino Hunt
     const [albinoHunt] = await pool.query('SELECT level, charged, typeboost, typetimestamp FROM albino_hunt WHERE userid = ?', [req.user.id])
+
     const albinoHuntResult = (albinoHunt as { level: number, charged: Date, typeboost: string, typetimestamp: Date }[])[0]
 
     boosts.albinoLevel = areSameDay(albinoHuntResult.charged, nowUTC) ? albinoHuntResult.level : 0

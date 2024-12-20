@@ -17,6 +17,7 @@ import {RouteWishforgeBadges} from './routes/wishforge'
 import {RouteVWave} from './routes/vwave'
 import {RouteInventoryCurrency, RouteInventoryGems, RouteInventoryMarket} from './routes/inventory'
 import {RouteDiscordHypermode} from './routes/discord'
+import {RouteMetricsZophan} from './routes/zophan'
 
 dotenv.config()
 
@@ -73,6 +74,8 @@ app.get('/inventory/currency', authenticateToken, RouteInventoryCurrency)
 app.get('/inventory/market', authenticateToken, RouteInventoryMarket)
 
 app.get('/discord/hypermode', authenticateToken, RouteDiscordHypermode)
+
+app.get('/metrics/zophan', RouteMetricsZophan)
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
