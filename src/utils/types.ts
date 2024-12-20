@@ -12,7 +12,15 @@ export function getTypeList() {
 export function computeType(user: User): string[] {
   const typeList = getTypeList()
 
-  let seed = user.id
+  let today: number[]
+  
+  const now = new Date()
+  today = [now.getFullYear(), now.getMonth() + 1]
+  
+  const todayMonth = today[0] * 12 + today[1]
+  const seriesOffset = Math.floor(todayMonth / 18) - 1348
+
+  let seed = user.id * seriesOffset
   const rand = (max: number): number => {
     seed = Math.imul(0x41C64E6D, seed) + 0x00006073
     seed = seed >>> 0
