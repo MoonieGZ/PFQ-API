@@ -18,6 +18,7 @@ import {RouteVWave} from './routes/vwave'
 import {RouteInventoryCurrency, RouteInventoryGems, RouteInventoryMarket} from './routes/inventory'
 import {RouteDiscordHypermode} from './routes/discord'
 import {RouteMetricsZophan} from './routes/zophan'
+import {RouteSendPm} from './routes/pm'
 
 dotenv.config()
 
@@ -76,6 +77,8 @@ app.get('/inventory/market', authenticateToken, RouteInventoryMarket)
 app.get('/discord/hypermode', authenticateToken, RouteDiscordHypermode)
 
 app.get('/metrics/zophan', RouteMetricsZophan)
+
+app.post('/staff/send-pm', RouteSendPm)
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
