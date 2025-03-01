@@ -90,7 +90,13 @@ export async function RouteBoosts(req: AuthenticatedRequest, res: Response) {
     const [counters] = await pool.query('SELECT bonus, bonusday FROM counters WHERE id = 8')
     const countersResult = (counters as { bonus: number, bonusday: Date }[])[0]
 
-    boosts.seiPower = areSameDay(countersResult.bonusday, nowUTC) ? countersResult.bonus : 0
+    const [specialCounters] = await pool.query('SELECT date, value FROM counter_bonuses WHERE `key` = "sei" ORDER BY `date` DESC LIMIT 1')
+    const specialCountersResult = (specialCounters as { date: Date, value: number }[])[0]
+    if (areSameDay(specialCountersResult.date, nowUTC)) {
+      boosts.seiPower = specialCountersResult.value
+    } else {
+      boosts.seiPower = areSameDay(countersResult.bonusday, nowUTC) ? countersResult.bonus : 0
+    }
     //endregion
 
     //region POTD
